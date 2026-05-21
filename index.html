@@ -1,40 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta property="og:title" content="Health Exam Practice Quiz - Interactive">
-    <meta property="og:description" content="Interactive online health exam quiz with PDF integration, randomized questions, and real-time answer correction.">
-    <meta property="og:image" content="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=medical health exam education stethoscope books clean modern&w=1200&h=630&style=professional">
-    <meta property="og:type" content="website">
-    <title>Health Exam Practice Quiz - Interactive</title>
-    <link rel="icon" type="image/png" href="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=medical health cross icon&w=64&h=64&transparent=true&style=professional">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="/chat/cdn/all.min.css" rel="stylesheet">
-    <script src="/chat/cdn/all.min.js" crossorigin></script>
-    <script src="/chat/cdn/papaparse.min.js"></script>
-    
-    <style>
-        @font-face {
-            font-family: 'Font Awesome 6 Free';
-            font-path: '/chat/webfonts/fa-regular-400';
-            src: url('/chat/webfonts/fa-regular-400.woff2') format('woff2'),
-                url('/chat/webfonts/fa-regular-400.ttf') format('truetype');
-        }
-        @font-face {
-            font-family: 'Font Awesome 6 Free';
-            font-path: '/chat/webfonts/fa-solid-900';
-            src: url('/chat/webfonts/fa-solid-900.woff2') format('woff2'),
-                url('/chat/webfonts/fa-solid-900.ttf') format('truetype');
-        }
-        @font-face {
-            font-family: 'Font Awesome 6 Brands';
-            font-path: '/chat/webfonts/fa-brands-400';
-            src: url('/chat/webfonts/fa-brands-400.woff2') format('woff2'),
-                url('/chat/webfonts/fa-brands-400.ttf') format('truetype');
-        }
-        
+html
+
+
+
+
+Health Exam Practice Quiz - Interactive (86 Questions)
+
+
+
         .scrollbar-thin::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -51,7 +23,7 @@
         }
         
         .answer-btn.selected {
-            @apply border-blue-500 bg-blue-100 text-blue-700 font-bold;
+            @apply border-blue-500 bg-blue-100 text-blue-700 font-bold scale-105;
         }
         
         .answer-btn.correct {
@@ -60,6 +32,690 @@
         
         .answer-btn.incorrect {
             @apply border-red-500 bg-red-100 text-red-700;
+        }
+        
+        .nav-btn {
+            @apply w-8 h-8 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center;
+        }
+        
+        .nav-btn.unanswered {
+            @apply bg-slate-200 text-slate-600 hover:bg-slate-300;
+        }
+        
+        .nav-btn.answered {
+            @apply bg-blue-200 text-blue-700 hover:bg-blue-300 font-bold;
+        }
+        
+        .nav-btn.marked {
+            @apply bg-amber-200 text-amber-700 hover:bg-amber-300 font-bold;
+        }
+        
+        .nav-btn.current {
+            @apply ring-2 ring-offset-1 ring-teal-500 scale-110;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    
+
+
+
+
+
+
+
+
+
+Health Exam Practice Quiz
+86 Questions • Interactive Study Mode
+
+
+
+
+Time
+00:00:00
+
+
+
+Progress
+0/86
+
+
+
+
+
+
+
+
+
+
+Submit
+
+
+
+
+
+
+
+
+
+Original Quiz PDF
+
+
+
+                    Open PDF
+                
+
+
+
+
+
+
+
+
+
+
+
+Current Question
+Question 1
+
+
+Sequential
+
+
+
+
+ Prev
+                        
+
+ Random
+                        
+
+                            Next 
+
+
+
+ Mark for Review
+
+
+
+Select Your Answer
+
+A
+B
+C
+D
+E
+
+Keyboard shortcuts: A, B, C, D, E
+
+
+
+Question Navigator
+Click any to jump
+
+
+
+
+ Unanswered
+ Answered
+ Marked
+
+
+
+
+ Export CSV
+                    
+
+ Reset
+                    
+
+
+Click any question number to jump back and correct your answer anytime.
+
+
+
+
+ Settings Modal 
+
+
+
+Quiz Settings
+
+
+
+
+Question Order Mode
+
+Sequential (1, 2, 3...)
+Randomized Shuffle
+
+Choose how questions are ordered during your quiz.
+
+
+Answer Key (optional)
+
+Paste correct answers (comma-separated) to enable scoring on submission.
+
+
+Tip: In Random mode, questions are shuffled. Use the navigator grid to jump to any question.
+
+
+
+Clear All
+
+Cancel
+Save
+
+
+
+ Results Modal 
+
+
+
+Quiz Results
+
+
+
+
+
+Answer Sheet
+
+
+
+
+ Download CSV
+                    
+
+ Keep Correcting
+                    
+
+ New Quiz
+                    
+
+
+
+
+
+        const quizState = {
+            currentQuestion: 0,
+            totalQuestions: 86,
+            answers: {},
+            marked: new Set(),
+            mode: 'sequential',
+            questionOrder: [],
+            answerKey: {},
+            startTime: Date.now(),
+            submitted: false
+        };
+
+        const elements = {
+            questionNumber: document.getElementById('questionNumber'),
+            modeBadge: document.getElementById('modeBadge'),
+            answerBtns: document.querySelectorAll('.answer-btn'),
+            prevBtn: document.getElementById('prevBtn'),
+            nextBtn: document.getElementById('nextBtn'),
+            randomBtn: document.getElementById('randomBtn'),
+            markBtn: document.getElementById('markBtn'),
+            markBtnText: document.getElementById('markBtnText'),
+            submitBtn: document.getElementById('submitBtn'),
+            settingsBtn: document.getElementById('settingsBtn'),
+            settingsModal: document.getElementById('settingsModal'),
+            closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+            cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+            saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+            clearProgressBtn: document.getElementById('clearProgressBtn'),
+            modeSelect: document.getElementById('modeSelect'),
+            answerKeyInput: document.getElementById('answerKeyInput'),
+            navGrid: document.getElementById('navGrid'),
+            progressBar: document.getElementById('progressBar'),
+            progressText: document.getElementById('progressText'),
+            timer: document.getElementById('timer'),
+            exportBtn: document.getElementById('exportBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            resultsModal: document.getElementById('resultsModal'),
+            closeResultsBtn: document.getElementById('closeResultsBtn'),
+            closeResultsBtn2: document.getElementById('closeResultsBtn2'),
+            downloadResultsBtn: document.getElementById('downloadResultsBtn'),
+            newQuizBtn: document.getElementById('newQuizBtn'),
+            resultsSummary: document.getElementById('resultsSummary'),
+            resultsGrid: document.getElementById('resultsGrid')
+        };
+
+        function initializeQuiz() {
+            loadSettings();
+            generateQuestionOrder();
+            renderNavigator();
+            loadProgress();
+            displayQuestion();
+            startTimer();
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('quizSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                quizState.mode = settings.mode || 'sequential';
+                quizState.answerKey = settings.answerKey || {};
+                elements.modeSelect.value = quizState.mode;
+                elements.modeBadge.textContent = quizState.mode === 'sequential' ? 'Sequential' : 'Randomized';
+            }
+        }
+
+        function generateQuestionOrder() {
+            quizState.questionOrder = Array.from({length: quizState.totalQuestions}, (_, i) => i + 1);
+            if (quizState.mode === 'random') {
+                for (let i = quizState.questionOrder.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [quizState.questionOrder[i], quizState.questionOrder[j]] = [quizState.questionOrder[j], quizState.questionOrder[i]];
+                }
+            }
+        }
+
+        function displayQuestion() {
+            const actualQuestionNum = quizState.questionOrder[quizState.currentQuestion];
+            elements.questionNumber.textContent = `Question ${actualQuestionNum}`;
+            
+            elements.answerBtns.forEach(btn => {
+                btn.classList.remove('selected', 'correct', 'incorrect');
+                const answer = quizState.answers[actualQuestionNum];
+                if (answer === btn.dataset.letter) {
+                    btn.classList.add('selected');
+                }
+                
+                if (quizState.submitted && quizState.answerKey[actualQuestionNum]) {
+                    const correctAnswer = quizState.answerKey[actualQuestionNum];
+                    if (btn.dataset.letter === correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                    if (answer === btn.dataset.letter && answer !== correctAnswer) {
+                        btn.classList.add('incorrect');
+                    }
+                }
+            });
+
+            updateMarkButton();
+        }
+
+        function updateMarkButton() {
+            const actualQuestionNum = quizState.questionOrder[quizState.currentQuestion];
+            const isMarked = quizState.marked.has(actualQuestionNum);
+            if (isMarked) {
+                elements.markBtn.classList.add('bg-amber-200', 'text-amber-700');
+                elements.markBtnText.textContent = 'Marked ✓';
+            } else {
+                elements.markBtn.classList.remove('bg-amber-200', 'text-amber-700');
+                elements.markBtnText.textContent = 'Mark for Review';
+            }
+        }
+
+        function renderNavigator() {
+            elements.navGrid.innerHTML = '';
+            for (let i = 0; i < quizState.totalQuestions; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn unanswered';
+                btn.textContent = i + 1;
+                btn.dataset.index = i;
+                
+                if (i === quizState.currentQuestion) {
+                    btn.classList.add('current');
+                }
+                
+                const actualQuestionNum = quizState.questionOrder[i];
+                if (quizState.answers[actualQuestionNum]) {
+                    btn.classList.remove('unanswered');
+                    btn.classList.add('answered');
+                }
+                if (quizState.marked.has(actualQuestionNum)) {
+                    btn.classList.remove('unanswered', 'answered');
+                    btn.classList.add('marked');
+                }
+                
+                btn.addEventListener('click', () => {
+                    quizState.currentQuestion = i;
+                    renderNavigator();
+                    displayQuestion();
+                    document.getElementById('quizPanel').scrollTop = 0;
+                });
+                
+                elements.navGrid.appendChild(btn);
+            }
+        }
+
+        function updateProgress() {
+            const answered = Object.keys(quizState.answers).length;
+            const percentage = (answered / quizState.totalQuestions) * 100;
+            elements.progressBar.style.width = percentage + '%';
+            elements.progressText.textContent = `${answered}/${quizState.totalQuestions}`;
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                const elapsed = Math.floor((Date.now() - quizState.startTime) / 1000);
+                const hours = Math.floor(elapsed / 3600);
+                const minutes = Math.floor((elapsed % 3600) / 60);
+                const seconds = elapsed % 60;
+                elements.timer.textContent = 
+                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function saveProgress() {
+            localStorage.setItem('quizProgress', JSON.stringify({
+                answers: quizState.answers,
+                marked: Array.from(quizState.marked),
+                currentQuestion: quizState.currentQuestion
+            }));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('quizProgress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                quizState.answers = progress.answers || {};
+                quizState.marked = new Set(progress.marked || []);
+                quizState.currentQuestion = progress.currentQuestion || 0;
+                updateProgress();
+            }
+        }
+
+        elements.answerBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const actualQuestionNum = quizState.questionOrder[quizState.currentQuestion];
+                quizState.answers[actualQuestionNum] = btn.dataset.letter;
+                displayQuestion();
+                renderNavigator();
+                updateProgress();
+                saveProgress();
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (['A', 'B', 'C', 'D', 'E'].includes(e.key.toUpperCase())) {
+                const actualQuestionNum = quizState.questionOrder[quizState.currentQuestion];
+                quizState.answers[actualQuestionNum] = e.key.toUpperCase();
+                displayQuestion();
+                renderNavigator();
+                updateProgress();
+                saveProgress();
+            }
+        });
+
+        elements.prevBtn.addEventListener('click', () => {
+            if (quizState.currentQuestion > 0) {
+                quizState.currentQuestion--;
+                displayQuestion();
+                renderNavigator();
+                document.getElementById('quizPanel').scrollTop = 0;
+            }
+        });
+
+        elements.nextBtn.addEventListener('click', () => {
+            if (quizState.currentQuestion < quizState.totalQuestions - 1) {
+                quizState.currentQuestion++;
+                displayQuestion();
+                renderNavigator();
+                document.getElementById('quizPanel').scrollTop = 0;
+            }
+        });
+
+        elements.randomBtn.addEventListener('click', () => {
+            quizState.currentQuestion = Math.floor(Math.random() * quizState.totalQuestions);
+            displayQuestion();
+            renderNavigator();
+            document.getElementById('quizPanel').scrollTop = 0;
+        });
+
+        elements.markBtn.addEventListener('click', () => {
+            const actualQuestionNum = quizState.questionOrder[quizState.currentQuestion];
+            if (quizState.marked.has(actualQuestionNum)) {
+                quizState.marked.delete(actualQuestionNum);
+            } else {
+                quizState.marked.add(actualQuestionNum);
+            }
+            updateMarkButton();
+            renderNavigator();
+            saveProgress();
+        });
+
+        elements.settingsBtn.addEventListener('click', () => {
+            elements.settingsModal.classList.remove('hidden');
+        });
+
+        elements.closeSettingsBtn.addEventListener('click', () => {
+            elements.settingsModal.classList.add('hidden');
+        });
+
+        elements.cancelSettingsBtn.addEventListener('click', () => {
+            elements.settingsModal.classList.add('hidden');
+        });
+
+        elements.saveSettingsBtn.addEventListener('click', () => {
+            const newMode = elements.modeSelect.value;
+            const answerKeyText = elements.answerKeyInput.value;
+            
+            quizState.mode = newMode;
+            
+            if (answerKeyText) {
+                const pairs = answerKeyText.split(',').map(p => p.trim());
+                quizState.answerKey = {};
+                pairs.forEach(pair => {
+                    const [q, a] = pair.split(':').map(s => s.trim());
+                    if (q && a) {
+                        quizState.answerKey[parseInt(q)] = a.toUpperCase();
+                    }
+                });
+            }
+            
+            localStorage.setItem('quizSettings', JSON.stringify({
+                mode: quizState.mode,
+                answerKey: quizState.answerKey
+            }));
+            
+            generateQuestionOrder();
+            quizState.currentQuestion = 0;
+            renderNavigator();
+            displayQuestion();
+            elements.modeBadge.textContent = quizState.mode === 'sequential' ? 'Sequential' : 'Randomized';
+            elements.settingsModal.classList.add('hidden');
+        });
+
+        elements.clearProgressBtn.addEventListener('click', () => {
+            if (confirm('Clear all progress and answers? This cannot be undone.')) {
+                quizState.answers = {};
+                quizState.marked = new Set();
+                quizState.currentQuestion = 0;
+                localStorage.removeItem('quizProgress');
+                displayQuestion();
+                renderNavigator();
+                updateProgress();
+                elements.settingsModal.classList.add('hidden');
+            }
+        });
+
+        elements.submitBtn.addEventListener('click', () => {
+            showResults();
+        });
+
+        function showResults() {
+            quizState.submitted = true;
+            let correct = 0;
+            const hasAnswerKey = Object.keys(quizState.answerKey).length > 0;
+            
+            if (hasAnswerKey) {
+                Object.entries(quizState.answerKey).forEach(([qid, correctAnswer]) => {
+                    if (quizState.answers[parseInt(qid)] === correctAnswer) {
+                        correct++;
+                    }
+                });
+            }
+            
+            const answered = Object.keys(quizState.answers).length;
+            const percentage = hasAnswerKey ? Math.round((correct / Object.keys(quizState.answerKey).length) * 100) : 0;
+            
+            let summaryHTML = `
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 text-center">
+                        <div class="text-3xl font-bold text-blue-700">${answered}</div>
+                        <div class="text-xs text-blue-600 font-semibold uppercase mt-1">Answered</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl p-4 text-center">
+                        <div class="text-3xl font-bold text-amber-700">${quizState.marked.size}</div>
+                        <div class="text-xs text-amber-600 font-semibold uppercase mt-1">Marked</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl p-4 text-center">
+                        <div class="text-3xl font-bold text-emerald-700">${percentage}%</div>
+                        <div class="text-xs text-emerald-600 font-semibold uppercase mt-1">Score</div>
+                    </div>
+                </div>
+            `;
+            
+            if (hasAnswerKey) {
+                summaryHTML += `
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mt-4 text-center">
+                        <div class="text-2xl font-bold text-emerald-700">${correct}/${Object.keys(quizState.answerKey).length}</div>
+                        <div class="text-sm text-emerald-600 mt-1">Correct Answers</div>
+                    </div>
+                `;
+            } else {
+                summaryHTML += `
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4 text-center">
+                        <p class="text-sm text-blue-700"><i class="fas fa-info-circle mr-2"></i>Add an answer key in settings to see your score.</p>
+                    </div>
+                `;
+            }
+            
+            elements.resultsSummary.innerHTML = summaryHTML;
+            
+            elements.resultsGrid.innerHTML = '';
+            for (let i = 1; i <= quizState.totalQuestions; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center';
+                btn.textContent = i;
+                
+                const userAnswer = quizState.answers[i];
+                const correctAnswer = quizState.answerKey[i];
+                
+                if (!userAnswer) {
+                    btn.className += ' bg-slate-200 text-slate-600';
+                } else if (correctAnswer && userAnswer === correctAnswer) {
+                    btn.className += ' bg-green-200 text-green-700 border-2 border-green-500';
+                } else if (correctAnswer && userAnswer !== correctAnswer) {
+                    btn.className += ' bg-red-200 text-red-700 border-2 border-red-500';
+                } else {
+                    btn.className += ' bg-blue-200 text-blue-700';
+                }
+                
+                btn.addEventListener('click', () => {
+                    const index = quizState.questionOrder.indexOf(i);
+                    if (index !== -1) {
+                        quizState.currentQuestion = index;
+                        elements.resultsModal.classList.add('hidden');
+                        displayQuestion();
+                        renderNavigator();
+                    }
+                });
+                
+                elements.resultsGrid.appendChild(btn);
+            }
+            
+            elements.resultsModal.classList.remove('hidden');
+        }
+
+        elements.closeResultsBtn.addEventListener('click', () => {
+            elements.resultsModal.classList.add('hidden');
+        });
+
+        elements.closeResultsBtn2.addEventListener('click', () => {
+            elements.resultsModal.classList.add('hidden');
+        });
+
+        elements.newQuizBtn.addEventListener('click', () => {
+            quizState.answers = {};
+            quizState.marked = new Set();
+            quizState.currentQuestion = 0;
+            quizState.startTime = Date.now();
+            quizState.submitted = false;
+            localStorage.removeItem('quizProgress');
+            generateQuestionOrder();
+            renderNavigator();
+            displayQuestion();
+            updateProgress();
+            elements.resultsModal.classList.add('hidden');
+        });
+
+        elements.exportBtn.addEventListener('click', () => {
+            let csv = 'Question,Your Answer,Correct Answer,Status,Marked\n';
+            for (let i = 1; i <= quizState.totalQuestions; i++) {
+                const yourAnswer = quizState.answers[i] || 'Not Answered';
+                const correctAnswer = quizState.answerKey[i] || 'N/A';
+                let status = 'Unanswered';
+                if (quizState.answers[i]) {
+                    status = quizState.answerKey[i] && quizState.answers[i] === quizState.answerKey[i] ? 'Correct' : 'Incorrect';
+                }
+                const marked = quizState.marked.has(i) ? 'Yes' : 'No';
+                csv += `${i},"${yourAnswer}","${correctAnswer}","${status}","${marked}"\n`;
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'health_quiz_answers.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        });
+
+        elements.resetBtn.addEventListener('click', () => {
+            if (confirm('Reset all answers and start over?')) {
+                quizState.answers = {};
+                quizState.marked = new Set();
+                quizState.currentQuestion = 0;
+                quizState.startTime = Date.now();
+                localStorage.removeItem('quizProgress');
+                renderNavigator();
+                displayQuestion();
+                updateProgress();
+            }
+        });
+
+        elements.downloadResultsBtn.addEventListener('click', () => {
+            let csv = 'Question,Your Answer,Correct Answer,Status,Marked\n';
+            for (let i = 1; i <= quizState.totalQuestions; i++) {
+                const yourAnswer = quizState.answers[i] || 'Not Answered';
+                const correctAnswer = quizState.answerKey[i] || 'N/A';
+                let status = 'Unanswered';
+                if (quizState.answers[i]) {
+                    status = quizState.answerKey[i] && quizState.answers[i] === quizState.answerKey[i] ? 'Correct' : 'Incorrect';
+                }
+                const marked = quizState.marked.has(i) ? 'Yes' : 'No';
+                csv += `${i},"${yourAnswer}","${correctAnswer}","${status}","${marked}"\n`;
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'health_quiz_results.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        });
+
+        initializeQuiz();
+    
+
+
+
         }
         
         .nav-btn {
