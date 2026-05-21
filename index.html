@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="Health Exam Practice Quiz - Interactive">
+    <meta property="og:description" content="Interactive online health exam quiz with PDF integration, randomized questions, and real-time answer correction.">
+    <meta property="og:image" content="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=medical health exam education stethoscope books clean modern&w=1200&h=630&style=professional">
+    <meta property="og:type" content="website">
+    <title>Health Exam Practice Quiz - Interactive</title>
+    <link rel="icon" type="image/png" href="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=medical health cross icon&w=64&h=64&transparent=true&style=professional">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/chat/cdn/all.min.css" rel="stylesheet">
+    <script src="/chat/cdn/all.min.js" crossorigin></script>
+    <script src="/chat/cdn/papaparse.min.js"></script>
+    
+    <style>
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-path: '/chat/webfonts/fa-regular-400';
+            src: url('/chat/webfonts/fa-regular-400.woff2') format('woff2'),
+                url('/chat/webfonts/fa-regular-400.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-path: '/chat/webfonts/fa-solid-900';
+            src: url('/chat/webfonts/fa-solid-900.woff2') format('woff2'),
+                url('/chat/webfonts/fa-solid-900.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'Font Awesome 6 Brands';
+            font-path: '/chat/webfonts/fa-brands-400';
+            src: url('/chat/webfonts/fa-brands-400.woff2') format('woff2'),
+                url('/chat/webfonts/fa-brands-400.ttf') format('truetype');
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen overflow-hidden flex flex-col">
+
+    <header class="bg-gradient-to-r from-teal-600 to-blue-700 text-white shadow-lg shrink-0 z-20">
+        <div class="max-w-screen-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="bg-white/20 p-2 rounded-lg shrink-0">
+                    <i class="fas fa-heart-pulse text-xl"></i>
+                </div>
+                <div class="min-w-0">
+                    <h1 class="text-lg font-bold leading-tight truncate">Health Exam Practice Quiz</h1>
+                    <p class="text-xs text-teal-100 truncate">Interactive Study Mode</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 md:gap-6">
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="text-xs text-teal-100 uppercase tracking-wider">Time</span>
+                    <span id="timer" class="font-mono text-lg font-bold">00:00:00</span>
+                </div>
+                
+                <div class="hidden sm:flex flex-col w-32 lg:w-48">
+                    <div class="flex justify-between text-xs text-teal-100 mb-1">
+                        <span>Progress</span>
+                        <span id="progressText">0/50</span>
+                    </div>
+                    <div class="bg-black/20 rounded-full h-2 overflow-hidden">
+                        <div id="progressBar" class="bg-amber-400 h-full rounded-full transition-all duration-500 ease-out w-0"></div>
+                    </div>
+                </div>
+                
+                <button id="settingsBtn" class="p-2 hover:bg-white/20 rounded-lg transition-colors shrink-0" title="Settings">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+                
+                <button id="submitBtn" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold shadow-md transition-all duration-200 flex items-center gap-2 shrink-0">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="hidden sm:inline">Submit</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <section class="flex-1 flex flex-col min-h-0 bg-slate-100 border-b lg:border-b-0 lg:border-r border-slate-200">
+            <div class="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <i class="fas fa-file-pdf text-red-500"></i>
+                    <span>Quiz Document</span>
+                </div>
+                <a href="https://cdn.simtheory.ai/raw/upload/v1779259333/user_1595/Multiple%20Choice%20-%20Health%20Exam%20Practice%20Quiz.pdf" 
+                   target="_blank" 
+                   class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 transition-colors">
+                    <i class="fas fa-external-link-alt text-xs"></i>
+                    Open PDF
+                </a>
+            </div>
+            <div class="flex-1 relative min-h-0 bg-slate-200">
+                <iframe 
+                    src="https://cdn.simtheory.ai/raw/upload/v1779259333/user_1595/Multiple%20Choice%20-%20Health%20Exam%20Practice%20Quiz.pdf" 
+                    class="w-full h-full border-0"
+                    title="Health Exam PDF"
+                    loading="lazy">
+                </iframe>
+                <div id="pdfFallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-100 p-6 text-center">
+                    <i class="fas fa-file-pdf text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-slate-600 font-medium mb-2">Unable to display PDF in browser</p>
+                    <a href="https://cdn.simtheory.ai/raw/upload/v1779259333/user_1595/Multiple%20Choice%20-%20Health%20Exam%20Practice%20Quiz.pdf" 
+                       target="_blank"
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Open PDF in New Tab
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="w-full lg:w-[450px] xl:w-[520px] bg-white flex flex-col min-h-0 shadow-xl z-10">
+            <div id="quizPanel" class="flex-1 flex flex-col min-h-0 overflow-y-auto scrollbar-thin p-4 gap-4">
+                
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Question</span>
+                            <div id="questionNumber" class="text-3xl font-extrabold text-slate-800 mt-1">Question 1</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <span id="modeBadge" class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-md uppercase">Sequential</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button id="prevBtn" class="flex-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <i class="fas fa-chevron-left"></i> Prev
+                        </button>
+                        <button id="randomBtn" class="flex-1 bg-white border border-slate-300 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 text-slate-700 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 active:scale-95" title="Jump to Random Question">
+                            <i class="fas fa-random"></i> Random
+                        </button>
+                        <button id="nextBtn" class="flex-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 active:scale-95">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <button id="markBtn" class="w-full mt-2 bg-slate-200 hover:bg-amber-100 hover:text-amber-700 text-slate-700 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2">
+                        <i class="far fa-flag"></i> <span>Mark for Review</span>
+                    </button>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">Select Answer</label>
+                    <div class="grid grid-cols-5 gap-2">
+                        <button data-letter="A" class="answer-btn bg-white border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-4 rounded-xl font-bold text-xl transition-all duration-200 active:scale-95 shadow-sm">A</button>
+                        <button data-letter="B" class="answer-btn bg-white border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-4 rounded-xl font-bold text-xl transition-all duration-200 active:scale-95 shadow-sm">B</button>
+                        <button data-letter="C" class="answer-btn bg-white border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-4 rounded-xl font-bold text-xl transition-all duration-200 active:scale-95 shadow-sm">C</button>
+                        <button data-letter="D" class="answer-btn bg-white border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-4 rounded-xl font-bold text-xl transition-all duration-200 active:scale-95 shadow-sm">D</button>
+                        <button data-letter="E" class="answer-btn bg-white border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-4 rounded-xl font-bold text-xl transition-all duration-200 active:scale-95 shadow-sm">E</button>
+                    </div>
+                    <p class="text-xs text-slate-400 text-center mt-2">Keyboard shortcuts: A, B, C, D, E</p>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Question Navigator</span>
+                        <span class="text-xs text-slate-500">Click any to correct</span>
+                    </div>
+                    <div id="navGrid" class="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-5 gap-2 max-h-64 overflow-y-auto scrollbar-thin p-1">
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <button id="toggleTutorBtn" class="w-full flex items-center justify-between text-blue-800 font-semibold text-sm hover:text-blue-900 transition-colors">
+                        <span class="flex items-center gap-2"><i class="fas fa-robot"></i> AI Study Assistant</span>
+                        <i id="tutorChevron" class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="tutorPanel" class="hidden mt-3 space-y-3">
+                        <p class="text-xs text-blue-600">Ask about any health topic or question from the quiz.</p>
+                        <textarea id="tutorInput" rows="2" placeholder="Type your question here..." class="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"></textarea>
+                        <button id="askTutorBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i> Ask AI Tutor
+                        </button>
+                        <div id="tutorResponse" class="hidden text-sm text-slate-700 bg-white p-3 rounded-lg border border-blue-100 max-h-40 overflow-y-auto scrollbar-thin"></div>
+                        <div id="tutorLoading" class="hidden flex items-center justify-center gap-2 text-sm text-blue-600 py-2">
+                            <i class="fas fa-circle-notch fa-spin"></i> Thinking...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button id="exportBtn" class="flex-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 py-2 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> Save CSV
+                    </button>
+                    <button id="resetBtn" class="flex-1 bg-white border border-red-200 hover:bg-red-50 text-red-600 py-2 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+                
+                <div class="pb-4 text-center">
+                    <p class="text-xs text-slate-400">Use arrows or click grid to correct answers anytime before submitting.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="bg-gradient-to-r from-teal-600 to-blue-700 px-6 py-4 flex items-center justify-between">
+                <h2 class="text-white font-bold text-lg flex items-center gap-2"><i class="fas fa-cog"></i> Quiz Settings</h2>
+                <button id="closeSettingsBtn" class="text-white/80 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Total Questions</label>
+                    <input type="number" id="questionCountInput" min="1" max="200" value="50" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <p class="text-xs text-slate-500 mt-1">Set to match the number of questions in your PDF.</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Question Order Mode</label>
+                    <select id="modeSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+                        <option value="sequential">Sequential (1, 2, 3...)</option>
+                        <option value="random">Randomized Shuffle</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Answer Key <span class="text-xs font-normal text-slate-500">(optional, for scoring)</span></label>
+                    <textarea id="answerKeyInput" rows="3" placeholder="Format: 1:A, 2:B, 3:C ..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-mono"></textarea>
+                    <p class="text-xs text-slate-500 mt-1">Paste correct answers to see your score on submission.</p>
+                </div>
+                
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-info-circle text-amber-600 mt-0.5"></i>
+                        <div class="text-xs text-amber-800">
+                            <strong>Tip:</strong> In Random mode, questions are shuffled into a new order. You can still jump to any question using the navigator grid.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-200 p-4 flex gap-3 bg-slate-50">
+                <button id="clearProgressBtn" class="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium text-sm transition-colors">Clear Progress</button>
+                <div class="flex-1"></div>
+                <button id="cancelSettingsBtn" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium text-sm transition-colors">Cancel</button>
+                <button id="saveSettingsBtn" class="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-semibold text-sm transition-colors shadow-md">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultsModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex items-center justify-between shrink-0">
+                <h2 class="text-white font-bold text-xl flex items-center gap-2"><i class="fas fa-clipboard-check"></i> Quiz Results</h2>
+                <button id="closeResultsBtn" class="text-white/80 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="overflow-y-auto scrollbar-thin p-6">
+                <div id="resultsSummary" class="mb-6"></div>
+                
+                <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 mb-6">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Answer Sheet</h3>
+                    <div id="resultsGrid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2"></div>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 justify-center">
+                    <button id="downloadResultsBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-md transition-all flex items-center gap-2">
+                        <i class="fas fa-download"></i> Download CSV
+                    </button>
+                    <button id="closeResultsBtn2" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2">
+                        <i class="fas fa-edit"></i> Keep Correcting
+                    </button>
+                    <button id="newQuizBtn" class="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-mdI've already generated the core quiz files from your PDF. Let me present the complete solution and provide a fully standalone, polished HTML application you can use immediately.
+
+## Generated Files
+
+Here are the files extracted and created from your PDF:
+
+| File | Description | Link |
+|------|-------------|------|
+| **Interactive Quiz HTML** | The main online quiz application | [health_exam_quiz.html](https://cdn.simtheory.ai/raw/upload/v1779259850/user_1595/health_exam_quiz_ci_1595_1779259849.html) |
+| **Quiz Data (JSON)** | Structured question data | [quiz_data.json](https://cdn.simtheory.ai/raw/upload/v1779259851/user_1595/quiz_data_ci_1595_1779259850.json) |
+| **Extracted Images** | All diagrams/graphs from the PDF | [quiz_images.tar.gz](https://cdn.simtheory.ai/raw/upload/v1779259848/user_1595/quiz_images.tar_ci_1595_1779259848.gz) |
+
+---
+
+## Complete Standalone Quiz Application
+
+Below is the full source code for a **self-contained, interactive online quiz**. It includes all 81 questions, supports randomization, real-time answer correction via the question navigator, and embeds your original PDF for image reference.
+
+### Features included:
+- **Sequential & Random modes** — shuffle questions or go in order
+- **Question Navigator Grid** — click any question number to jump back and change your answer
+- **Embedded PDF viewer** — original quiz with all images visible on the left
+- **Progress tracking & Timer**
+- **"Mark for Review"** flagging
+- **Keyboard shortcuts** — `A`, `B`, `C`, `D`, `E` to answer; `←`/`→` to navigate
+- **Results export** to CSV
+- **AI Study Assistant** panel for asking questions
+
+### How to use with images:
+1. Download and extract `quiz_images.tar.gz` into a folder named `quiz_images/` next to this HTML file
+2. Or simply use the embedded PDF viewer on the left — all original diagrams and graphs are visible there
+3. Save the code below as `Health_Quiz.html` and open in any browser
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Exam Practice Quiz — Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/chat/cdn/all.min.css">
+    <script src="/chat/cdn/all.min.js" crossorigin></script>
+    <style>
+        @font-face { font-family: 'Font Awesome 6 Free'; src: url('/chat/webfonts/fa-solid-900.woff2') format('woff2'), url('/chat/webfonts/fa-solid-900.ttf') format('truetype'); }
+        @font-face { font-family: 'Font Awesome 6 Brands'; src: url('/chat/webfonts/fa-brands-400.woff2') format('woff2'), url('/chat/webfonts/fa-brands-400.ttf') format('truetype'); }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f5f9; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .answer-btn.selected { border-color: #3b82f6; background-color: #eff6ff; color: #1d4ed8; transform: scale(1.05); }
+        .answer-btn.correct { border-color: #22c55e; background-color: #f0fdf4; color: #15803d; }
+        .answer-btn.incorrect { border-color: #ef4444; background-color: #fef2f2; color: #b91c1c; }
+        .nav-btn { transition: all 0.2s; }
+        .nav-btn.answered { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; font-weight: 600; }
+        .nav-btn.current { ring: 2px; ring-color: #f59e0b; border-color: #f59e0b; transform: scale(1.1); }
+        .nav-btn.marked::after { content: ''; position: absolute; top: 1px; right: 1px; width: 6px; height: 6px; background: #f59e0b; border-radius: 50%; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen overflow-hidden flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-teal-600 to-blue-700 text-white shadow-lg shrink-0 z-20">
+        <div class="max-w-screen-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="bg-white/20 p-2 rounded-lg"><i class="fas fa-heart-pulse text-xl"></i></div>
+                <div class="min-w-0">
+                    <h1 class="text-lg font-bold truncate">Health Exam Practice Quiz</h1>
+                    <p class="text-xs text-teal-100">Interactive Study Mode</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 md:gap-6">
+                <div class="hidden md:block text-right">
+                    <div class="text-xs text-teal-100">Time</div>
+                    <div id="timer" class="font-mono text-lg font-bold">00:00:00</div>
+                </div>
+                <div class="hidden sm:block w-32 lg:w-48">
+                    <div class="flex justify-between text-xs text-teal-100 mb-1">
+                        <span>Progress</span><span id="progressText">0/81</span>
+                    </div>
+                    <div class="bg-black/20 rounded-full h-2"><div id="progressBar" class="bg-amber-400 h-full rounded-full transition-all w-0"></div></div>
+                </div>
+                <button id="settingsBtn" class="p-2 hover:bg-white/20 rounded-lg transition" title="Settings"><i class="fas fa-cog"></i></button>
+                <button id="submitBtn" class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 transition">
+                    <i class="fas fa-check-circle"></i><span class="hidden sm:inline">Submit</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <!-- PDF Viewer -->
+        <section class="flex-1 flex flex-col min-h-0 bg-slate-100 border-b lg:border-b-0 lg:border-r border-slate-200">
+            <div class="bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center shrink-0">
+                <span class="text-sm font-semibold text-slate-700"><i class="fas fa-file-pdf text-red-500 mr-2"></i>Original Quiz PDF (Reference)</span>
+                <span class="text-xs text-slate-500">Images, graphs & diagrams shown here</span>
+            </div>
+            <div class="flex-1 relative min-h-0">
+                <iframe id="pdfFrame" src="https://cdn.simtheory.ai/raw/upload/v1779259333/user_1595/Multiple%20Choice%20-%20Health%20Exam%20Practice%20Quiz.pdf" class="w-full h-full border-0"></iframe>
+            </div>
+        </section>
+
+        <!-- Quiz Panel -->
+        <section class="w-full lg:w-[480px] xl:w-[520px] bg-white flex flex-col min-h-0 shadow-xl z-10">
+            <div id="quizPanel" class="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4">
+                
+                <!-- Question Card -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Current Question</span>
+                            <h2 id="questionTitle" class="text-2xl font-extrabold text-slate-800">Question 1</h2>
+                        </div>
+                        <span id="modeBadge" class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded uppercase">Sequential</span>
+                    </div>
+                    
+                    <div id="questionText" class="text-slate-700 text-[15px] leading-relaxed mb-4 min-h-[3rem] fade-in font-medium"></div>
+                    
+                    <!-- Image placeholder for extracted diagrams -->
+                    <div id="imageContainer" class="hidden mb-4 rounded-lg overflow-hidden border border-slate-200 bg-white">
+                        <img id="questionImage" src="" alt="Question diagram" class="w-full h-auto max-h-48 object-contain">
+                        <p class="text-xs text-slate-400 text-center py-1 bg-slate-50">Diagram from original quiz</p>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex gap-2 mt-4">
+                        <button id="prevBtn" class="flex-1 bg-white border border-slate-300 hover:bg-slate-50 py-2 rounded-lg font-medium transition flex items-center justify-center gap-1 active:scale-95">
+                            <i class="fas fa-chevron-left text-xs"></i> Prev
+                        </button>
+                        <button id="randomBtn" class="flex-1 bg-white border border-slate-300 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 py-2 rounded-lg font-medium transition flex items-center justify-center gap-1 active:scale-95" title="Jump to Random">
+                            <i class="fas fa-random text-xs"></i> Random
+                        </button>
+                        <button id="nextBtn" class="flex-1 bg-white border border-slate-300 hover:bg-slate-50 py-2 rounded-lg font-medium transition flex items-center justify-center gap-1 active:scale-95">
+                            Next <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                    <button id="markBtn" class="w-full mt-2 bg-slate-200 hover:bg-amber-100 hover:text-amber-700 text-slate-600 py-2 rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm">
+                        <i class="far fa-flag"></i> <span id="markText">Mark for Review</span>
+                    </button>
+                </div>
+
+                <!-- Answer Buttons -->
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">Select Your Answer <span class="text-slate-400 font-normal">— Click to change anytime</span></label>
+                    <div class="grid grid-cols-5 gap-2">
+                        <button data-opt="0" class="answer-btn border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-3 rounded-xl font-bold text-lg transition-all active:scale-95 shadow-sm">A</button>
+                        <button data-opt="1" class="answer-btn border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-3 rounded-xl font-bold text-lg transition-all active:scale-95 shadow-sm">B</button>
+                        <button data-opt="2" class="answer-btn border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-3 rounded-xl font-bold text-lg transition-all active:scale-95 shadow-sm">C</button>
+                        <button data-opt="3" class="answer-btn border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-3 rounded-xl font-bold text-lg transition-all active:scale-95 shadow-sm">D</button>
+                        <button data-opt="4" class="answer-btn border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 py-3 rounded-xl font-bold text-lg transition-all active:scale-95 shadow-sm">E</button>
+                    </div>
+                    <div id="optionLabels" class="grid grid-cols-5 gap-2 mt-2 text-xs text-slate-500 text-center leading-tight"></div>
+                    <p class="text-xs text-slate-400 text-center mt-3"><i class="fas fa-keyboard mr-1"></i>Shortcuts: A, B, C, D, E keys</p>
+                </div>
+
+                <!-- Question Navigator -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Question Navigator</span>
+                        <span class="text-xs text-slate-500">Click any to correct</span>
+                    </div>
+                    <div id="navGrid" class="grid grid-cols-8 sm:grid-cols-10 lg:grid-cols-9 gap-1.5 max-h-56 overflow-y-auto scrollbar-thin p-1"></div>
+                    <div class="flex gap-4 mt-2 text-xs text-slate-500 justify-center">
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-white border border-slate-300"></span> Unanswered</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-blue-100 border border-blue-500"></span> Answered</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-100 border border-amber-500 relative overflow-hidden"><span class="absolute top-0 right-0 w-1.5 h-1.5 bg-amber-500 rounded-full"></span></span> Marked</span>
+                    </div>
+                </div>
+
+                <!-- AI Tutor -->
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+                    <button id="toggleTutorBtn" class="w-full flex items-center justify-between text-indigo-800 font-semibold text-sm hover:text-indigo-900 transition">
+                        <span class="flex items-center gap-2"><i class="fas fa-robot"></i> AI Study Assistant</span>
+                        <i id="tutorChevron" class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="tutorPanel" class="hidden mt-3 space-y-3">
+                        <p class="text-xs text-indigo-600">Ask about any health topic or quiz question.</p>
+                        <textarea id="tutorInput" rows="2" placeholder="e.g., What is the Ottawa Charter?" class="w-full px-3 py-2 border border-indigo-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+                        <button id="askTutorBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i> Ask
+                        </button>
+                        <div id="tutorResponse" class="hidden text-sm text-slate-700 bg-white p-3 rounded-lg border border-indigo-100 max-h-40 overflow-y-auto scrollbar-thin"></div>
+                        <div id="tutorLoading" class="hidden text-center text-sm text-indigo-600 py-2"><i class="fas fa-circle-notch fa-spin mr-2"></i>Thinking...</div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2">
+                    <button id="exportBtn" class="flex-1 bg-white border border-slate-300 hover:bg-slate-50 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                    <button id="resetBtn" class="flex-1 bg-white border border-red-200 hover:bg-red-50 text-red-600 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="bg-gradient-to-r from-teal-600 to-blue-700 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-white font-bold text-lg"><i class="fas fa-cog mr-2"></i>Quiz Settings</h2>
+                <button id="closeSettingsBtn" class="text-white/80 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Question Order</label>
+                    <select id="modeSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                        <option value="sequential">Sequential (1, 2, 3...)</option>
+                        <option value="random">Random Shuffle</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Answer Key <span class="text-xs font-normal text-slate-500">(optional, for scoring)</span></label>
+                    <textarea id="answerKeyInput" rows="2" placeholder="e.g., 1:C, 2:B, 3:C..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
+                    <p class="text-xs text-slate-500 mt-1">Paste correct answers to enable auto-scoring on submit.</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                    <i class="fas fa-lightbulb mr-1"></i> <strong>Tip:</strong> In Random mode, questions are shuffled into a new order. The navigator always shows original numbers.
+                </div>
+            </div>
+            <div class="border-t border-slate-200 p-4 bg-slate-50 flex gap-3 justify-end">
+                <button id="cancelSettingsBtn" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium transition">Cancel</button>
+                <button id="saveSettingsBtn" class="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-semibold text-sm transition shadow">Apply Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="resultsModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex justify-between items-center shrink-0">
+                <h2 class="text-white font-bold text-xl"><i class="fas fa-clipboard-check mr-2"></i>Quiz Results</h2>
+                <button id="closeResultsBtn" class="text-white/80 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="overflow-y-auto scrollbar-thin p-6">
+                <div id="resultsSummary" class="mb-6"></div>
+                <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 mb-4">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Answer Sheet</h3>
+                    <div id="resultsGrid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2"></div>
+                </div>
+                <div class="flex flex-wrap gap-3 justify-center">
+                    <button id="downloadResultsBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow transition flex items-center gap-2">
+                        <i class="fas fa-download"></i> Download CSV
+                    </button>
+                    <button id="closeResultsBtn2" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-lg font-semibold transition flex items-center gap-2">
+                        <i class="fas fa-edit"></i> Keep Correcting
+                    </button>
+                    <button id="newQuizBtn" class="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow transition flex items-center gap-2">
+                        <i class="fas fa-redo"></i> New Attempt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ========================
+    // QUIZ DATA (All 81 Questions)
+    // ========================
+    const rawQuestions = [
+        { id: 1, q: "An example of a genetic disease is", opts: ["Common Cold virus","HIV","Cystic fibrosis","COVID-19"], img: false },
+        { id: 2, q: "Genetic counselling is available to provide advice to the population regarding", opts: ["the pursuit of a healthy lifestyle","therapeutic drug treatments","inherited diseases like cystic fibrosis","post-natal baby care"], img: false },
+        { id: 3, q: "Which scientist stated the series of steps needed to identify the microorganism responsible for a particular disease?", opts: ["Louis Pasteur","Robert Hooke","Robert Koch","Marie Curie"], img: false },
+        { id: 4, q: "Who was responsible for the development of the polio vaccine?", opts: ["Sir Alexander Fleming","Jonas Salk","Sir Frank Macfarlane Burnet","Louis Pasteur"], img: false },
+        { id: 5, q: "Bacteria were spread over agar. A multidisc with eight antibiotics (A–H) was placed on the surface. The antibiotics which would be the LEAST EFFECTIVE against these bacteria were:", opts: ["D – G – H","A – C – F","A – B – C","E – F – D"], img: true, imgFile: "quiz_images/question_5_antibiotic_disc.png" },
+        { id: 6, q: "Australian Health Professionals are concerned about childhood obesity. The most likely cause is believed to be due to", opts: ["New arrivals bringing genetic diversity","Australians from English origins who are often overweight","Advertising of junk food in Australia","Poor diet added with the fact that Australian children now exercise a lot less"], img: false },
+        { id: 7, q: "A local council installed outdoor exercise equipment and employed a personal trainer. Which two action areas of the Ottawa Charter does this best demonstrate?", opts: ["Reorienting health services and Developing personal skills","Creating supportive environments and Developing personal skills","Strengthening community action and Building healthy public policy","Creating supportive environments and Building healthy public policy"], img: false },
+        { id: 8, q: "Which of the following contains only preventative health practices?", opts: ["A diet low in processed sugars, high in fibre and up to date vaccinations","Taking a dose of antibiotics and having a skin cancer removed","Removal of a cancerous tumour in the lung and regular blood tests","Having a chest x-ray and undergoing chemotherapy"], img: false },
+        { id: 9, q: "Antiseptics are widely used in hospitals", opts: ["to combat serious bacterial infections in patients","to sterilise the meals of patients recovering from operations","to pasteurise surgical equipment","to kill most micro-organisms on work and other surfaces"], img: false },
+        { id: 10, q: "The Australian Institute of Health and Welfare collects data. A trend from the graph in relation to recommended daily intake of fruits and vegetables is that", opts: ["people of all age groups are more likely to eat the recommended daily intake of vegetables than fruit","people over 54 consume less meat and eat more fruit and vegetables","people from 45-54 and older are more likely to eat the recommended daily intake than younger age groups","the lowest intake of fruit and vegetables is in the 15-17 age group"], img: true, imgFile: "quiz_images/question_10_fruit_veg_graph.png" },
+        { id: 11, q: "Infectious diseases have many methods of transmission. Malaria, common in developing countries, is transmitted by", opts: ["Vectors such as insects","Contaminated water","Body fluids such as blood","Skin contact"], img: false },
+        { id: 12, q: "Urbanization promotes the rapid spread of infectious diseases through", opts: ["having more hospitals and infrastructure","creating a communication and educational void","having an adequate waste water system in place","Increasing population density"], img: false },
+        { id: 13, q: "Australian Health Professionals are concerned about children infected with measles. The most likely cause is believed to be due to:", opts: ["Arrivals to Australia bringing genetic diversity","Australians having no immunity against diseases","Lack of antibiotics available","Poorly informed parents not vaccinating children leading to lack of herd immunity"], img: false },
+        { id: 14, q: "Improvement in health standards and public health in developing countries can be attributed to access to:", opts: ["Vaccination, antibiotics and pandemics","Vaccination, disease and building infrastructure","Clean drinking water, education and disease outbreaks","Vaccination, clean drinking water and sewage systems"], img: false },
+        { id: 15, q: "Which of the following health technologies is not a preventative measure?", opts: ["Vaccination","Screening blood tests","X-rays","Quit smoking programs"], img: false },
+        { id: 16, q: "Choose the option that best describes what it means to be in good health", opts: ["The absence of disease or infirmity","Sound physical and mental functioning","Eating well and having lots of energy","A state of complete physical, mental, emotional and social wellbeing"], img: false },
+        { id: 17, q: "A child suffering from a genetic disease like Down's Syndrome has", opts: ["Caught the disease from their parents","Inherited faulty genes from their parents","Been given a poor diet which affected their genes","Been exposed to an environmental pollutant which caused their genetic change"], img: false },
+        { id: 18, q: "People with disabilities can find it more difficult to control their weight. Challenges facing people with disabilities and obesity include", opts: ["Medications that contribute to weight gain","Lack of healthy food choices","Lack of education and employment","Limited access to health and support services"], img: false },
+        { id: 19, q: "A doctor suspects patients show symptoms of a disease caused by an environmental factor. Evidence supporting this would be that the patients", opts: ["all belong to the same town","all belong to the same extended family","all eat the same diet","all belong to the same larger group of people (e.g., Australian)"], img: false },
+        { id: 20, q: "Microscopes have been crucial in developing our understanding of diseases because", opts: ["without them we could not identify diseased body organs","they allow us to identify symptoms and develop treatments","they allow us to identify which micro-organisms cause diseases","they are technologically advanced medical equipment"], img: false },
+        { id: 21, q: "The graph shows leading causes of death in 2021. According to the graph, what was the leading cause of death in females?", opts: ["Lung cancer","Coronary heart disease","Cerebrovascular disease","Dementia and Alzheimer's disease"], img: true, imgFile: "quiz_images/question_21_leading_causes_death.png" },
+        { id: 22, q: "Increases in technology have enabled diagnostic equipment such as X-rays and CT scans. These tools have the advantages of being:", opts: ["Inexpensive and risk free","Used to detect genetic disorders in newborns","Useful in the early detection of disease","Suitable for use by untrained staff"], img: false },
+        { id: 23, q: "The socio-economic factors most likely to allow a person to enjoy a high standard of health are", opts: ["high level of education, full time employment, high salary","high quality of diet, non-smoking habit and full-time employment","greater amount of exercise, acceptable BMI, normal blood pressure","greater speed of recovery from infectious diseases, long life span"], img: false },
+        { id: 24, q: "The Bangkok Charter for Health Promotion in a Globalised World:", opts: ["Was put forward by WHO to help deal with the CORONA crisis","Is concerned with the health status of inhabitants of Bangkok","Identifies actions, commitments and pledges required for a healthier world","Coordinates cancer research on a global basis"], img: false },
+        { id: 25, q: "The graph shows a trend in smoking rates in Australia between 2001 and 2011-2012. Which statement is correct according to the Graph?", opts: ["In 2011-12, overall rates of smoking have increased for both males and females","Between 2001 and 2011-12, overall rates of smoking have decreased for both males and females","Between 2001 and 2011-12, overall rates of smoking have increased for both males and females","In 2001 rates of smoking decreased for both males and females"], img: true, imgFile: "quiz_images/question_25_smoking_trend.png" },
+        { id: 26, q: "A student investigated if moisture content affected growth of Clostridium Perfringens. Three variables were identified: moisture content, amount of bacteria growing, temperature of food. The dependent variable is:", opts: ["moisture content","amount of bacteria growing","temperature of food","pH of food"], img: true, imgFile: "quiz_images/question_26_variables.png" },
+        { id: 27, q: "Following the tsunamis in Japan in 2011, coordination was required to manage delivery of health services. The organization that takes over this role would be the", opts: ["United States CDC","Asian Pacific Charters","Ottawa Charters","World Health Organisation (WHO)"], img: false },
+        { id: 28, q: "What is the main factor that contributes to an increased likelihood of an epidemic of COVID-19 becoming a pandemic?", opts: ["Increased pet ownership","Increased antibiotic use","Decreasing vaccination rates","Increased global travel"], img: false },
+        { id: 29, q: "Which of the following diseases can result in an outbreak in a community that lacks vaccination programs?", opts: ["Candidiasis","Amoebiasis","Measles","Tinea"], img: false },
+        { id: 30, q: "Which of the following groups contain only curative health strategies?", opts: ["Antibiotics, MRI scan, vaccination, pain killers","Health advertising, chemotherapy, blood tests, physiotherapy","Radiotherapy, antibiotics, casting of a broken limb","Health check-up, radiotherapy, antiviral medication, sanitation"], img: false },
+        { id: 31, q: "Kangaroos and wallabies may host Ross River Virus. When a mosquito bites an infected animal and then a human, the virus enters the bloodstream. It can be inferred that", opts: ["the viral vector is a mosquito","Ross River water transmits the virus","the virus is a mosquito pathogen","many kangaroos and wallabies are killed by this virus annually"], img: false },
+        { id: 32, q: "The primary means of transmission of coronavirus is direct person-to-person transfer by respiratory particles. Which method is most effective in controlling the spread?", opts: ["A coronavirus vaccine","New antiviral drugs","Covering open wounds","Wearing face masks"], img: false },
+        { id: 33, q: "Which of the following is the best definition of epidemiology?", opts: ["Study of infectious disease","Life expectancy and birth rates in a population","Prevention of disease in a population","Study of incidence, distribution, and control of disease in a population"], img: false },
+        { id: 34, q: "Salk's work developing a widely-used polio vaccine is celebrated as a success because", opts: ["it is an example of how science and medicine combine","it has made Salk extremely wealthy and famous","it has completely eradicated polio as a disease of humans","it has saved the suffering of countless numbers of people globally"], img: false },
+        { id: 35, q: "The Bangkok Charter is well known for its focus on curative action of diseases. Which list can be associated with the Bangkok Charter?", opts: ["Global job creations to reduce health issues","Promoting sustainable agriculture and improving health among farmers","Surgery, chemotherapy, radiation, and affordable medications to all","Development of new vaccines to prevent infectious diseases"], img: false },
+        { id: 36, q: "Which of the following are made ONLY of protein?", opts: ["The cell membranes of microorganisms","Cyanobacteria and bacteria cell walls","Viruses","Prions"], img: false },
+        { id: 37, q: "Which of the following scientists was the first to develop the inactivated polio vaccine?", opts: ["Louis Pasteur","Robert Koch","Alexander Fleming","Jonas Salk"], img: false },
+        { id: 38, q: "Choose the most correct answer in relation to the given definitions (see diagram in PDF page 17).", opts: ["Option A","Option B","Option C","Option D"], img: true, imgFile: "quiz_images/question_38_definitions.png" },
+        { id: 39, q: "Salk's work developing a widely-used polio vaccine is celebrated as a success because", opts: ["it completely wiped out the disease","it has completely eliminated the disease in many advanced countries and significantly reduced it in emerging countries","it made a lot of money for the Salk Company","it has had no effect but led to many other developments in virology"], img: false },
+        { id: 40, q: "Which of the following is an example of a non-infectious disease?", opts: ["Polio caused by a virus","Cholera caused by a bacterium","Tinea caused by a fungus","Haemophilia caused by a genetic disorder"], img: false },
+        { id: 41, q: "Which of the following is NOT one of the identified required actions of the Ottawa Charter?", opts: ["Make the promotion of health central to the global development agenda","Develop personal skills","Reorient health services","Strengthen community actions"], img: false },
+        { id: 42, q: "Which of the following is one of the five action areas of the Ottawa Charter?", opts: ["Finding a cure for malaria in developing countries","Strengthening community action","Solving the obesity epidemic in Australia","Building healthy public policy"], img: false },
+        { id: 43, q: "Robert Koch contributed to an understanding of disease by developing:", opts: ["A method to link a particular pathogen to the cause of a disease","An experiment that disproved spontaneous generation","A method of killing microbes by heating","An immunisation program based on immune responses"], img: false },
+        { id: 44, q: "Modern technology has provided diagnostic equipment such as X-rays and ultrasounds, which have advantages because they", opts: ["are non-surgical so reduce post-operative risks","need no trained experts to use them","are available freely to everyone in Australia","are totally risk free"], img: false },
+        { id: 45, q: "This figure demonstrates results from an experiment testing effectiveness of different antibiotics on a pure culture. Which antibiotic is most effective?", opts: ["Antibiotic A","Antibiotic B","Antibiotic C","Antibiotic D"], img: true, imgFile: "quiz_images/question_45_antibiotic_effectiveness.png" },
+        { id: 46, q: "Malaria is caused by a single celled parasite called Plasmodium. What is the mode of transmission of this disease to humans?", opts: ["Person to person","A Vector","Contaminated water","Protozoans"], img: false },
+        { id: 47, q: "Two overweight students developed a fitness program but kept quitting. Which strategy would best help them stay with their program?", opts: ["Increase smoking and drinking coffee","Support and accompany one another to a local fitness centre","Socialise more with friends and family","Review their goals weekly with a healthcare professional"], img: false },
+        { id: 48, q: "The diagram shows growth of a microorganism on an agar plate swabbed from a red part of the skin. This indicates a:", opts: ["Viral infection","Bacterial infection","Fungal infection","Protozoan infection"], img: true, imgFile: "quiz_images/question_48_agar_plate.png" },
+        { id: 49, q: "Health may be best defined as having", opts: ["Access to the best medical care","A strong immune system able to resist infectious diseases","A state of physical, mental and social well-being","A body mass index within the normal range"], img: false },
+        { id: 50, q: "Immunisation may be used to control the spread of some", opts: ["genetic disorders","infectious diseases","nutritional diseases","diseases caused by pollution"], img: false },
+        { id: 51, q: "Robert Koch formulated criteria to identify a microorganism as the cause of a disease. Which option shows the criteria in the correct order?", opts: ["A, B, D, C","C, A, D, B","D, A, B, C","C, D, B, A"], img: false },
+        { id: 52, q: "In 1998, Sydney's drinking water had high concentrations of cryptosporidium and giardia. The best method to prevent spread would have been:", opts: ["Vaccination against cryptosporidium and giardia","To shut down the water supply and advise people to buy their own water","To boil water before use and observe hygiene practices","To fix the overflowing sewage systems"], img: false },
+        { id: 53, q: "Diagnostic tools for individual health are useful because", opts: ["They reduce the burden of health care costs on the government","They enable doctors to get a complete picture of health problems","They contribute valuable information to enable government spending where needed","They directly help patients recover from their illness"], img: false },
+        { id: 54, q: "The unusual high rate of incidence of a particular disease in one given location is described as", opts: ["low morbidity","a pandemic","high mortality","an epidemic"], img: false },
+        { id: 55, q: "The graph gives information about milestones in reducing smoking in Australia (1980-2007). Which statement is correct?", opts: ["The first Quit campaign took place in 1980","Banning smoking in workplaces caused a reduction","Total smoking rates increased from 1998 to 2001","Females smoked more than males 1998-2001"], img: true, imgFile: "quiz_images/question_55_smoking_milestones.png" },
+        { id: 56, q: "WHO describes Communicable disease control in emergencies. The fundamental principles need to occur in this order:", opts: ["Surveillance, Rapid assessment, Prevention, Outbreak control, Disease management","Rapid assessment, Prevention, Surveillance, Outbreak control, Disease management","Prevention, Rapid assessment, Surveillance, Outbreak control, Disease management","Surveillance, Outbreak control, Disease management, Rapid assessment, Prevention"], img: false },
+        { id: 57, q: "Which of the following lists include only non-infectious diseases?", opts: ["Cholera, Tuberculosis, Malaria","Osteoporosis, Cancer, Influenza","Allergies, Diabetes, Cardiovascular disease","Influenza, Polio, Measles"], img: false },
+        { id: 58, q: "The process of Pasteurization was discovered by", opts: ["Sir Frank Macfarlane Burnet","Louis Pasteur","Sir Alexander Fleming","Howard Florey"], img: false },
+        { id: 59, q: "A well-known scientist researched microorganisms and breakthroughs in microbial fermentation, causes and prevention of diseases, and preservation of milk through a process he invented. This scientist is:", opts: ["Robert Koch","Alexander Fleming","Louis Pasteur","Jonas Salk"], img: false },
+        { id: 60, q: "The rate of incidence of disease and being unhealthy within a population is:", opts: ["Epidemic","Pandemic","Mortality","Morbidity"], img: false },
+        { id: 61, q: "Agricultural activities may contribute to", opts: ["Development of medical technology","Improvement in mental health","Employment in urban areas","Lifestyle diseases"], img: false },
+        { id: 62, q: "Which of the following is one of the key actions of the Bangkok Charter?", opts: ["Building healthy public policy","Make the promotion of health central to the global development agenda","Finding a cure for malaria in developing countries","Solving the obesity epidemic in Australia"], img: false },
+        { id: 63, q: "The 19th Century scientist who linked microbes with the disease they cause is", opts: ["Jonas Salk","Louis Pasteur","Conrad Rontgen","Robert Koch"], img: false },
+        { id: 64, q: "The rate of incidence of a disease and being unhealthy within a population is", opts: ["Epidemiology","Morbidity","Mortality","Life expectancy"], img: false },
+        { id: 65, q: "The graph shows new cases by age in 2014 for Type 1 Diabetes. The best interpretation is:", opts: ["Type 1 diabetes only affects young people","Type 1 diabetes mostly diagnosed between ages 10-19","Older people do not get diabetes","As people get older they are cured of diabetes"], img: true, imgFile: "quiz_images/question_65_diabetes_graph.png" },
+        { id: 66, q: "In 1954, Dr. Jonas Salk was recognised internationally for", opts: ["developing penicillin","developing the polio vaccine","developing the Ebola vaccine","developing a vaccine for the corona virus"], img: false },
+        { id: 67, q: "Epidemiology does NOT", opts: ["predict trends in disease occurrence allowing planning for the future","point to where more money and resources need to be used","establish a link between diseases and their possible causes","describe the best possible treatments for diseases"], img: false },
+        { id: 68, q: "Health may be best defined as having", opts: ["Access to the best medical care","A strong immune system able to resist infectious diseases","A state of physical, mental and social well-being","A body mass index within the normal range"], img: false },
+        { id: 69, q: "Syphilis is a sexually transmitted disease that can be successfully treated with antibiotics such as penicillin because syphilis is caused by a", opts: ["bacterial infection","viral infection","corona infection","prion infection"], img: false },
+        { id: 70, q: "The scientist credited with the development of the first safe vaccine for Polio is", opts: ["Edward Jenner","Louis Pasteur","Robert Koch","Jonas Salk"], img: false },
+        { id: 71, q: "An investigation into the immediate effect of smoking on cardio-respiratory response to exercise may reveal that", opts: ["Uptake of oxygen into the blood is reduced and heart rate is increased","Lung capacity is reduced making exercise harder","smokers get a temporary 'hit' from nicotine","Uptake of oxygen into the blood is reduced and heart rate is decreased"], img: false },
+        { id: 72, q: "Which of the following contains only preventative health practices?", opts: ["A healthy diet, up to date vaccinations, regular doctor checkups","Taking a dose of antibiotics, getting a mammogram, getting a skin cancer removed","Removal of a cancerous lung, cervical PAP smear check, regular blood tests","Completing a dose of antibiotics, chest x-ray, having chemotherapy"], img: false },
+        { id: 73, q: "The provided diagram represents an experiment performed by a famous 19th Century microbiologist using sterilized soup broth. This scientist is:", opts: ["Jonas Salk","Louis Pasteur","Robert Koch","Charles Darwin"], img: true, imgFile: "quiz_images/question_73_swan_neck.png" },
+        { id: 74, q: "The purpose of genetic counselling is to provide information and advice regarding", opts: ["Healthy lifestyle choices","Ways to avoid cancer","Pregnancy care","Inherited diseases such as sickle cell disease"], img: false },
+        { id: 75, q: "The main reason why epidemics such as COVID-19 are more likely to become pandemics in the 21st Century is:", opts: ["excessive use of antiviral drugs","consumption of genetically modified foods","unnecessary overuse of antibiotics","global travel"], img: false },
+        { id: 76, q: "Which of the following is NOT one of the five action areas of the Ottawa Charter?", opts: ["Building healthy public policy","Strengthening community action","Re-orientating health care services toward prevention","Creating a vaccine for all known infectious diseases"], img: false },
+        { id: 77, q: "Which of the following contains only preventative health practices?", opts: ["A good diet, up to date vaccinations, regular doctor check-ups","Taking a dose of antibiotics, getting a mammogram, having a skin cancer removed","Removal of a cancerous tumour in the lung, cervical PAP smear check, regular blood tests","Completing a dose of antibiotics, chest x-ray, having chemotherapy"], img: false },
+        { id: 78, q: "Which scientist developed the technique to identify disease causing organisms?", opts: ["Koch","Pasteur","Jenner","Leeuwenhoek"], img: false },
+        { id: 79, q: "Morbidity is defined as", opts: ["an infectious state","a state of death","a diseased state","a state of obesity"], img: false },
+        { id: 80, q: "A study determined if pH levels affected growth of Clostridium perfringens. Variables: pH levels, amount of bacteria growing, temperature of food. The independent variable is:", opts: ["pH levels","amount of bacteria growing","temperature of food","time of incubation"], img: true, imgFile: "quiz_images/question_80_pH_variables.png" },
+        { id: 81, q: "Which of the following has been consistently shown to cause an imbalance in human natural bacterial microflora?", opts: ["excessive use of antiviral drugs","consumption of genetically modified foods","unnecessary overuse of antibiotics","vaccination"], img: false }
+    ];
+
+    // ========================
+    // APP STATE
+    // ========================
+    let questions = [];
+    let answers = {};      // qid -> optionIndex
+    let marked = new Set();
+    let currentIndex = 0;
+    let mode = 'sequential';
+    let answerKey = {};
+    let timerInterval;
+    let secondsElapsed = 0;
+    let isSubmitted = false;
+
+    // ========================
+    // INITIALIZATION
+    // ========================
+    function init() {
+        shuffleQuestions();
+        renderNav();
+        loadQuestion(0);
+        startTimer();
+        setupEventListeners();
+        updateProgress();
+    }
+
+    function shuffleQuestions() {
+        questions = mode === 'random' 
+            ? [...rawQuestions].sort(() => Math.random() - 0.5)
+            : [...rawQuestions];
+    }
+
+    // ========================
+    // RENDERING
+    // ========================
+    function loadQuestion(index) {
+        if (index < 0) index = 0;
+        if (index >= questions.length) index = questions.length - 1;
+        currentIndex = index;
+        
+        const q = questions[index];
+        const qNum = questions[index].id;
+        
+        // Update header
+        document.getElementById('questionTitle').textContent = `Question ${qNum}`;
+        document.getElementById('questionNumber').textContent = `Question ${qNum}`;
+        document.getElementById('modeBadge').textContent = mode === 'random' ? 'Random' : 'Sequential';
+        
+        // Question text with animation
+        const textEl = document.getElementById('questionText');
+        textEl.classList.remove('fade-in');
+        void textEl.offsetWidth; // trigger reflow
+        textEl.textContent = q.q;
+        textEl.classList.add('fade-in');
+        
+        // Image handling
+        const imgContainer = document.getElementById('imageContainer');
+        const imgEl = document.getElementById('questionImage');
+        if (q.img && q.imgFile) {
+            imgEl.src = q.imgFile;
+            imgEl.onerror = () => { imgContainer.classList.add('hidden'); };
+            imgEl.onload = () => { imgContainer.classList.remove('hidden'); };
+            imgContainer.classList.remove('hidden');
+        } else {
+            imgContainer.classList.add('hidden');
+        }
+        
+        // Answer buttons state
+        const savedAnswer = answers[q.id];
+        document.querySelectorAll('.answer-btn').forEach((btn, i) => {
+            btn.classList.remove('selected', 'correct', 'incorrect');
+            if (savedAnswer === i) {
+                btn.classList.add('selected');
+            }
+            // Show scoring if submitted and answer key exists
+            if (isSubmitted && answerKey[q.id]) {
+                const correctIdx = letterToIndex(answerKey[q.id]);
+                if (i === correctIdx) btn.classList.add('correct');
+                if (savedAnswer === i && i !== correctIdx) btn.classList.add('incorrect');
+            }
+        });
+        
+        // Option labels
+        const labelsEl = document.getElementById('optionLabels');
+        labelsEl.innerHTML = q.opts.map((opt, i) => 
+            `<div class="truncate" title="${opt}">${String.fromCharCode(65+i)}. ${opt}</div>`
+        ).join('');
+        
+        // Mark button state
+        const markBtn = document.getElementById('markBtn');
+        const markIcon = markBtn.querySelector('i');
+        if (marked.has(q.id)) {
+            markBtn.classList.add('bg-amber-100', 'text-amber-700');
+            markBtn.classList.remove('bg-slate-200', 'text-slate-600');
+            markIcon.classList.remove('far');
+            markIcon.classList.add('fas');
+            document.getElementById('markText').textContent = 'Marked for Review';
+        } else {
+            markBtn.classList.remove('bg-amber-100', 'text-amber-700');
+            markBtn.classList.add('bg-slate-200', 'text-slate-600');
+            markIcon.classList.remove('fas');
+            markIcon.classList.add('far');
+            document.getElementById('markText').textContent = 'Mark for Review';
+        }
+        
+        // Update nav highlighting
+        updateNavHighlight();
+        
+        // Scroll PDF to relevant page (approximate: 2 questions per page)
+        const pageNum = Math.ceil(qNum / 2);
+        scrollPdfToPage(pageNum);
+    }
+
+    function renderNav() {
+        const grid = document.getElementById('navGrid');
+        grid.innerHTML = '';
+        rawQuestions.forEach(rq => {
+            const btn = document.createElement('button');
+            btn.className = 'nav-btn relative w-full aspect-square rounded-lg border border-slate-300 bg-white text-xs font-medium flex items-center justify-center hover:bg-slate-50 transition';
+            btn.textContent = rq.id;
+            btn.dataset.qid = rq.id;
+            btn.onclick = () => {
+                const idx = questions.findIndex(q => q.id === rq.id);
+                if (idx !== -1) loadQuestion(idx);
+            };
+            grid.appendChild(btn);
+        });
+        updateNavStates();
+    }
+
+    function updateNavStates() {
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            const qid = parseInt(btn.dataset.qid);
+            btn.classList.remove('answered', 'current', 'marked');
+            
+            // Marked?
+            if (marked.has(qid)) btn.classList.add('marked');
+            
+            // Current?
+            if (questions[currentIndex] && questions[currentIndex].id === qid) {
+                btn.classList.add('current');
+            }
+        });
+    }
+
+    function updateNavHighlight() {
+        updateNavStates();
+        // Scroll current into view
+        const currentBtn = document.querySelector(`.nav-btn[data-qid="${questions[currentIndex]?.id}"]`);
+        if (currentBtn) currentBtn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    function updateProgress() {
+        const answered = Object.keys(answers).length;
+        const total = questions.length;
+        document.getElementById('progressText').textContent = `${answered}/${total}`;
+        document.getElementById('progressBar').style.width = `${(answered / total) * 100}%`;
+        
+        // Update nav button answered states
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            const qid = parseInt(btn.dataset.qid);
+            if (answers[qid] !== undefined) btn.classList.add('answered');
+            else btn.classList.remove('answered');
+        });
+    }
+
+    function scrollPdfToPage(pageNum) {
+        const pdfFrame = document.getElementById('pdfFrame');
+        // Note: PDF iframe scrolling to specific pages is limited by browser security.
+        // The user can manually navigate the PDF on the left.
+    }
+
+    // ========================
+    // ANSWER HANDLING
+    // ========================
+    function selectAnswer(optIndex) {
+        if (isSubmitted) return;
+        const qid = questions[currentIndex].id;
+        answers[qid] = optIndex;
+        
+        // Visual feedback
+        document.querySelectorAll('.answer-btn').forEach((btn, i) => {
+            btn.classList.toggle('selected', i === optIndex);
+        });
+        
+        updateProgress();
+        
+        // Auto-advance after short delay (optional, can be disabled)
+        // setTimeout(() => nextQuestion(), 400);
+    }
+
+    function nextQuestion() {
+        if (currentIndex < questions.length - 1) loadQuestion(currentIndex + 1);
+    }
+
+    function prevQuestion() {
+        if (currentIndex > 0) loadQuestion(currentIndex - 1);
+    }
+
+    function randomQuestion() {
+        const randomIdx = Math.floor(Math.random() * questions.length);
+        loadQuestion(randomIdx);
+    }
+
+    function toggleMark() {
+        const qid = questions[currentIndex].id;
+        if (marked.has(qid)) marked.delete(qid);
+        else marked.add(qid);
+        loadQuestion(currentIndex); // Refresh button state
+        updateNavStates();
+    }
+
+    // ========================
+    // TIMER
+    // ========================
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            secondsElapsed++;
+            const h = String
